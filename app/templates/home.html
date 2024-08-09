@@ -1,48 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mistral AI Assistant New</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
     <style>
         body {
             background-color: #f9f9f9;
             color: #333;
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-        }
-        .container {
-            max-width: 100vw;
-            width: 100%;
-            height: 100vh; /* Make the container take up the full height */
-            background-color: #fff;
-            border-radius: 0; /* Remove border radius */
-            box-shadow: none; /* Remove box shadow */
+            height: 100vh;
+            display: flex;
             overflow: hidden;
+        }
+        .sidebar {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            width: 250px;
+            flex-shrink: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .bot-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .bot-list li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #34495e;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .bot-list li:hover {
+            background-color: #1abc9c;
+        }
+        .bot-list li.active {
+            background-color: #1abc9c;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
         }
         .header {
-            background-color: #333;
+            background-color: #2c3e50;
             color: #fff;
             padding: 20px;
             text-align: center;
             flex-shrink: 0;
         }
-        .header img {
-            height: 60px;
-        }
         .chat-box {
             padding: 15px;
-            flex-grow: 1; /* Allow the chat box to grow and fill the available space */
+            flex-grow: 1;
             overflow-y: auto;
+            background-color: #ecf0f1;
             display: flex;
             flex-direction: column;
-            background-color: #e1e1e1;
         }
         .message {
             margin-bottom: 15px;
@@ -54,14 +81,14 @@
             clear: both;
         }
         .message.user {
-            background-color: #4CAF50; /* New color */
+            background-color: #4CAF50;
             color: #fff;
             align-self: flex-end;
             text-align: right;
             margin-left: auto;
         }
         .message.assistant {
-            background-color: #f1f1f1; /* New color */
+            background-color: #f1f1f1;
             color: #333;
             align-self: flex-start;
             margin-right: auto;
@@ -84,61 +111,113 @@
             border: 1px solid #ced4da;
         }
         .btn-primary {
-            background-color: #333; /* New color */
+            background-color: #2c3e50;
             border-radius: 20px;
-            display: flex;
-            align-items: center;
             padding: 10px 15px;
         }
         .btn-primary:hover {
-            background-color: #555; /* New hover color */
+            background-color: #34495e;
         }
-        .btn-primary svg {
-            margin-right: 8px; /* Space between icon and text */
+        .new-chat-btn {
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
-        .spinner-border-sm {
-            margin-left: 10px;
+        .new-chat-btn:hover {
+            background-color: #16a085;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
+        <h2>Chat Bots</h2>
+        <ul class="bot-list" id="botList">
+            <li data-bot="bot1" class="active">Bot 1</li>
+            <li data-bot="bot2">Bot 2</li>
+            <li data-bot="bot3">Bot 3</li>
+        </ul>
+    </div>
+    <div class="chat-container">
         <div class="header">
-            <img src="{{ url_for('static', filename='chatbot-logo.png') }}" alt="Mistral AI Logo" />
+            <img src="{{ url_for('static', filename='StemKasaLogoNew.png') }}" alt="Mistral AI Logo" height="50">
         </div>
         <div class="chat-box" id="chat-box"></div>
-            <!-- Messages will be dynamically inserted here -->
-        </div>
         <div class="form-container">
             <form id="messageForm" onsubmit="handleSubmit(event)" class="d-flex w-100">
                 <div class="form-group flex-grow-1 mb-0">
                     <input type="text" id="message" name="message" class="form-control" autocomplete="off" placeholder="Type your message here..." required>
                 </div>
-                <button type="submit" class="btn btn-primary">Send<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
-                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
-                  </svg></button>
+                <button type="submit" class="btn btn-primary">Send
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                    </svg>
+                </button>
             </form>
         </div>
     </div>
 
     <script>
+        let currentBot = 'bot1';
+        let botCounter = 3;
+        const chatHistories = {
+            bot1: [],
+            bot2: [],
+            bot3: []
+        };
+
+        // Function to switch between bots
+        document.getElementById('botList').addEventListener('click', function(event) {
+            if (event.target.tagName === 'LI') {
+                const selectedBot = event.target.getAttribute('data-bot');
+                if (selectedBot !== currentBot) {
+                    document.querySelector('.bot-list .active').classList.remove('active');
+                    event.target.classList.add('active');
+                    currentBot = selectedBot;
+                    loadChatHistory();
+                }
+            }
+        });
+
+        // Function to load chat history of the selected bot
+        function loadChatHistory() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = ''; // Clear current chat
+
+            chatHistories[currentBot].forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', message.sender);
+                messageElement.textContent = message.text;
+                chatBox.appendChild(messageElement);
+            });
+        }
+
+        // Function to handle message submission
         async function handleSubmit(event) {
-            event.preventDefault(); 
+            event.preventDefault();
 
             const chatBox = document.getElementById('chat-box');
             const sendButton = event.target.querySelector('button[type="submit"]');
             sendButton.disabled = true;
             sendButton.innerHTML = 'Sending... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-            const formData = new FormData(event.target); 
-            const message = formData.get('message'); 
+            const formData = new FormData(event.target);
+            const message = formData.get('message');
 
             // Append user message to chat
             const userMessageElement = document.createElement('div');
             userMessageElement.classList.add('message', 'user');
             userMessageElement.textContent = message;
             chatBox.appendChild(userMessageElement);
+            
+            // Store the message in chat history
+            chatHistories[currentBot].push({ sender: 'user', text: message });
 
+            // Send message to the backend
             const response = await fetch('/assistant', {
                 method: 'POST',
                 headers: {
@@ -147,7 +226,7 @@
                 body: JSON.stringify({ message: message }),
             });
 
-            const responseData = await response.json(); 
+            const responseData = await response.json();
             sendButton.disabled = false;
             sendButton.innerHTML = 'Send';
 
@@ -157,14 +236,47 @@
                 assistantMessageElement.classList.add('message', 'assistant');
                 assistantMessageElement.textContent = responseData.assistant_response;
                 chatBox.appendChild(assistantMessageElement);
+
+                // Store the assistant's response in chat history
+                chatHistories[currentBot].push({ sender: 'assistant', text: responseData.assistant_response });
+
                 chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
             }
-            
+
             event.target.reset();
         }
+
+        // Function to create a new chat
+        function createNewChat() {
+            botCounter++;
+            const newBotId = `bot${botCounter}`;
+            const botList = document.getElementById('botList');
+
+            // Add new bot to the list
+            const newBotElement = document.createElement('li');
+            newBotElement.setAttribute('data-bot', newBotId);
+            newBotElement.textContent = `Bot ${botCounter}`;
+            newBotElement.addEventListener('click', function() {
+                document.querySelector('.bot-list .active').classList.remove('active');
+                newBotElement.classList.add('active');
+                currentBot = newBotId;
+                loadChatHistory();
+            });
+
+            botList.appendChild(newBotElement);
+
+            // Add new chat history entry
+            chatHistories[newBotId] = [];
+            
+            // Set new chat as current
+            document.querySelector('.bot-list .active').classList.remove('active');
+            newBotElement.classList.add('active');
+            currentBot = newBotId;
+            loadChatHistory();
+        }
+
+        // Initialize with the first bot's chat history
+        loadChatHistory();
     </script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 </html>
