@@ -85,7 +85,6 @@
         }
         .btn-primary {
             background-color: #333; /* New color */
-            border: none;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -107,7 +106,7 @@
         <div class="header">
             <img src="{{ url_for('static', filename='chatbot-logo.png') }}" alt="Mistral AI Logo" />
         </div>
-        <div class="chat-box" id="chat-box">
+        <div class="chat-box" id="chat-box"></div>
             <!-- Messages will be dynamically inserted here -->
         </div>
         <div class="form-container">
