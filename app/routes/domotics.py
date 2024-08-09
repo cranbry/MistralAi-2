@@ -19,7 +19,7 @@ def get_devices_by_zone(zone):
 @domotics_bp.route('/zones', methods=['GET'])
 def get_available_zones():
     """
-    Endpoint to list available zones.
+    Endpoint to list available zones. q
     """
     zones = current_app.domotics_service.list_available_zones()
     if zones:
